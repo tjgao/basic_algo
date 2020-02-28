@@ -23,6 +23,23 @@ def subset_iter(lst):
             res.append(l)
     return res
 
+# the main idea is from the combination iterative 2
+def subset_iter2(lst):
+    res = [[]]
+    for l in range(1, len(lst)+1):
+        wip = [0] * l
+        i = 0
+        while i>=0:
+            wip[i] += 1
+            if i > l: 
+                i -= 1
+            elif i == l - 1:
+                res.append(list(wip))
+            else:
+                i += 1
+                wip[i] = wip[i-1]
+    return res
+
 
 # give a list of integer, return all possible subsets of it.
 # need to exclude duplicates
@@ -91,6 +108,8 @@ def combine_dfs(n, k):
     dfs(1, k)
     return res
 
+# this is a way, but there are many copies of list
+# and memory usage is high
 def combine_iter(n, k):
     res, wip = [], [[]]
     for i in range(1, n+1):
@@ -105,6 +124,26 @@ def combine_iter(n, k):
             elif len(lst) < k:
                 wip.append(lst)
     return res
+
+# this one is very efficient
+# main idea, manipulate the numbers in each position, increment them in a certain order
+# thus we have less copies and lower memory usage
+# it is also much faster
+
+def combine_iter2(n, k):
+    res, wip, i = [], [0] * k, 0
+    while i>=0:
+        wip[i] += 1
+        if (wip[i] > n): 
+            i -= 1
+        elif (i == k - 1): 
+            res.append(list(wip))
+        else:
+            i += 1
+            wip[i] = wip[i-1]
+    return res
+
+    
 
 def test_comb():
     print(sorted(combine_dfs(4,2)))
