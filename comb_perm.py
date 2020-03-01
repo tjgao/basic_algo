@@ -26,15 +26,15 @@ def subset_iter(lst):
 # the main idea is from the combination iterative 2
 def subset_iter2(lst):
     res = [[]]
-    for l in range(1, len(lst)+1):
+    for l in range(1, len(lst) + 1):
         wip = [0] * l
         i = 0
-        while i>=0:
+        while i >= 0:
             wip[i] += 1
-            if i > l: 
+            if wip[i] > len(lst):
                 i -= 1
             elif i == l - 1:
-                res.append(list(wip))
+                res.append([lst[ii-1] for ii in wip])
             else:
                 i += 1
                 wip[i] = wip[i-1]
@@ -82,12 +82,17 @@ def test_subsets():
     assert sorted(subset_dfs(lst0)) == sorted(subset_iter(lst0))
     assert sorted(subset_dfs(lst1)) == sorted(subset_iter(lst1))
     assert sorted(subset_dfs(lst2)) == sorted(subset_iter(lst2))
+
+    assert sorted(subset_dfs(lst0)) == sorted(subset_iter2(lst0))
+    assert sorted(subset_dfs(lst1)) == sorted(subset_iter2(lst1))
+    assert sorted(subset_dfs(lst2)) == sorted(subset_iter2(lst2))
     lst0 = [1,2,2,3,3,3,4]
     lst1 = [1,2,2,3]
     lst2 = []
     assert sorted(subset_dfs_dedup(lst0)) == sorted(subset_iter_dedup(lst0))
     assert sorted(subset_dfs_dedup(lst1)) == sorted(subset_iter_dedup(lst1))
     assert sorted(subset_dfs_dedup(lst2)) == sorted(subset_iter_dedup(lst2))
+
     print('subsets pass')
 
 #---------------------
@@ -132,23 +137,93 @@ def combine_iter(n, k):
 
 def combine_iter2(n, k):
     res, wip, i = [], [0] * k, 0
-    while i>=0:
+    while i >= 0:
         wip[i] += 1
-        if (wip[i] > n): 
+        if wip[i] > n:
             i -= 1
-        elif (i == k - 1): 
+        elif i == k - 1:
             res.append(list(wip))
         else:
             i += 1
             wip[i] = wip[i-1]
     return res
 
-    
 
 def test_comb():
-    print(sorted(combine_dfs(4,2)))
-    print(sorted(combine_iter(4,2)))
+    assert sorted(combine_dfs(4, 2)) == sorted(combine_iter(4, 2))
+    assert sorted(combine_dfs(4, 2)) == sorted(combine_iter2(4, 2))
+    assert sorted(combine_dfs(5, 1)) == sorted(combine_iter2(5, 1))
+    print('combination pass')
+
+# permutations with distinct numbers
+# recursive dfs
+def perm_dfs(lst):
+    result = []
+    def dfs(idx):
+        if idx >= len(lst):
+            result.append(list(lst))
+        else:
+            for i in range(idx, len(lst)):
+                lst[idx], lst[i] = lst[i], lst[idx]
+                dfs(idx+1)
+                lst[idx], lst[i] = lst[i], lst[idx]
+        return result
+    return dfs(0)
+
+# permutations with distinct objects
+# iterative way
+# the key is to figure out next permutation
+# the provided list may contain objects not comparable
+# then we can permute the index and thus permute the objects
+def perm_iter(lst):
+    result = []
+    def next_perm(nums):
+        i, j = -1, -1
+        for x in range(len(nums)-2, -1, -1):
+            if nums[x] < nums[x+1]:
+                i = x
+                break
+        if i < 0:
+            return None
+        for x in range(len(nums)-1, -1, -1):
+            if nums[x] > nums[i]:
+                j = x
+                break
+        nums[i], nums[j] = nums[j], nums[i]
+        return nums[:i+1] + sorted(nums[i+1:])
+
+    idx = [i for i in range(0, len(lst))]
+    while idx is not None:
+        result.append([lst[i] for i in idx])
+        idx = next_perm(idx)
+    return result
+
+
+# permutations with numbers with duplicates
+# a set is used to track used numbers
+def perm_dfs_dedup(lst):
+    result = []
+    lst.sort()
+    def dfs(idx):
+        if idx >= len(lst):
+            result.append(list(lst))
+        else:
+            used = set()
+            for i in range(idx, len(lst)):
+                if lst[i] in used: continue
+                used.add(lst[i])
+                lst[idx], lst[i] = lst[i], lst[idx]
+                dfs(idx+1)
+                lst[idx], lst[i] = lst[i], lst[idx]
+        return result
+    return dfs(0)
+
+def test_perm():
+    assert sorted(perm_dfs([1,2,3,4])) == sorted(perm_iter([1,2,3,4]))
+    print(sorted(perm_dfs_dedup([1,1,2,3,3])))
+    print('permutation pass')
 
 if __name__ == '__main__':
     test_subsets()
     test_comb()
+    test_perm()
